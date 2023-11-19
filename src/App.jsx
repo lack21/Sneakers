@@ -19,22 +19,15 @@ function App() {
   const mainImage = document.querySelector(".main-img");
   const smallImages2 = document.querySelectorAll(".small-img-2");
   const mainImage2 = document.querySelector(".main-img-2");
-  const aside = document.querySelector(".aside");
   const images = [product1Image, product2Image, product3Image, product4Image];
-  const links = document.querySelector(".links");
-  const cartSales = document.querySelector(".cart-sales");
-  const cartInfo = document.querySelector(".cart-info");
+  const [isLinks, setIsLinks] = useState(false);
+  const [isAside, setIsAside] = useState(false);
+  const [isCart, setIsCart] = useState(false);
+  const [cartArray, setCartArray] = useState([]);
+  const [isImage, setIsImage] = useState(false);
 
   let counter = 0;
   let [itemCount, setItemCount] = useState(0);
-
-  smallImages.forEach((item) => {
-    item.addEventListener("click", () => {
-      smallImages.forEach((item) => item.classList.remove("active"));
-      item.classList.add("active");
-      mainImage.src = item.src;
-    });
-  });
 
   smallImages2.forEach((item, index) => {
     item.addEventListener("click", () => {
@@ -45,13 +38,16 @@ function App() {
     });
   });
 
-  function openAside() {
-    mainImage2.src = mainImage.src;
-    aside.style.display = "flex";
+  function SelectImage(e) {
+    setIsImage((isImage) => !isImage);
+    smallImages.forEach((item) => item.classList.remove("active"));
+    e.target.classList.add("active");
+    mainImage.src = e.target.src;
   }
 
-  function closeAside() {
-    aside.style.display = "none";
+  function ToggleAside() {
+    setIsAside(!isAside);
+    mainImage2.src = mainImage.src;
   }
 
   function moveImage(e) {
@@ -59,10 +55,11 @@ function App() {
 
     if (counter > 3) {
       counter = 0;
+    } else if (counter < 0) {
+      counter = 3;
     }
 
     smallImages2.forEach((item) => item.classList.remove("active"));
-
     smallImages2[counter].classList.add("active");
     mainImage2.src = images[counter];
   }
@@ -81,27 +78,21 @@ function App() {
     setItemCount((itemCount) => itemCount + 1);
   }
 
-  function showLinks() {
-    links.style.left = "0";
-  }
-
-  function hideLinks() {
-    links.style.left = "-160px";
+  function ToggleLinks() {
+    setIsLinks(!isLinks);
   }
 
   function addItem() {
-    const newItem = document.createElement("div");
-    const htmlComponent = `<img src=${mainImage.src} class="selected-img" />
-    <h3 class="price">${itemCount * 125}.00$</h3>
-    <img src=${deleteIcon} class="delete-btn" />`;
-    newItem.className = "selected-item";
-    newItem.innerHTML = htmlComponent;
-
-    cartSales.appendChild(newItem);
+    if (itemCount == 0) {
+      return alert("You should select an item!");
+    }
+    const newItem = [mainImage.src, itemCount, deleteIcon];
+    setCartArray([...cartArray, newItem]);
+    setIsCart(true);
   }
 
-  function showHideCart() {
-    cartInfo.style.display = cartInfo.style.display == "flex" ? "none" : "flex";
+  function ToggleHideCart() {
+    setIsCart(!isCart);
   }
 
   return (
@@ -112,16 +103,16 @@ function App() {
             src={menuIcon}
             alt="menu icon"
             className="menu-links-btn"
-            onClick={showLinks}
+            onClick={ToggleLinks}
           />
           <img src={logoImage} alt="logo" />
 
-          <ul className="links">
+          <ul className={`links ${isLinks ? "active" : ""}`}>
             <img
               src={closeImage}
               alt="close icon"
               className="close-links-btn"
-              onClick={hideLinks}
+              onClick={ToggleLinks}
             />
             <li>
               <a href="#">Collections</a>
@@ -146,15 +137,22 @@ function App() {
               src={cartIcon}
               alt="cart icon"
               className="cart-icon"
-              onClick={showHideCart}
+              onClick={ToggleHideCart}
             />
-            <div className="cart-info">
+            <div className={`cart-info ${isCart ? "active" : ""}`}>
               <h3>Cart</h3>
               <hr />
               <div className="cart-sales">
                 <a href="#" className="btn">
                   Checkout
                 </a>
+                {cartArray.map((item, index) => (
+                  <div className="selected-item" key={index}>
+                    <img src={item[0]} className="selected-img" />
+                    <h3 className="price">{item[1] * 125}.00$</h3>
+                    <img src={item[2]} className="delete-btn" />
+                  </div>
+                ))}
               </div>
             </div>
           </button>
@@ -167,17 +165,18 @@ function App() {
             src={product1Image}
             alt="main-image"
             className="main-img"
-            onClick={openAside}
+            onClick={ToggleAside}
           />
           <div className="small-images">
-            <img
-              src={product1Image}
-              alt="product"
-              className="small-img active"
-            />
-            <img src={product2Image} alt="product" className="small-img" />
-            <img src={product3Image} alt="product" className="small-img" />
-            <img src={product4Image} alt="product" className="small-img" />
+            {images.map((item, index) => (
+              <img
+                src={item}
+                key={index}
+                className="small-img"
+                alt="product"
+                onClick={SelectImage}
+              />
+            ))}
           </div>
         </section>
         <section className="details-section">
@@ -214,12 +213,12 @@ function App() {
           </div>
         </section>
       </header>
-      <aside className="aside">
+      <aside className={`aside ${isAside ? "active" : ""}`}>
         <img
           src={closeImage}
           alt="close image"
           className="close-img"
-          onClick={closeAside}
+          onClick={ToggleAside}
         />
         <section className="image-section">
           <img
@@ -236,14 +235,15 @@ function App() {
             onClick={moveImage}
           />
           <div className="small-images">
-            <img
-              src={product1Image}
-              alt="product"
-              className="small-img-2 active"
-            />
-            <img src={product2Image} alt="product" className="small-img-2" />
-            <img src={product3Image} alt="product" className="small-img-2" />
-            <img src={product4Image} alt="product" className="small-img-2" />
+            {images.map((item, index) => (
+              <img
+                src={item}
+                key={index}
+                className="small-img-2"
+                alt="product"
+                onClick={SelectImage}
+              />
+            ))}
           </div>
         </section>
       </aside>
